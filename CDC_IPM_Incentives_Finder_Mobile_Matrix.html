@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CDC IPM – Incentives Finder (Mobile + Matrix)</title>
+  <style>
+    :root{
+      --bg0:#071018; --bg1:#0b1b2a;
+      --stroke: rgba(255,255,255,.14);
+      --text:#eaf2ff; --muted:#a9bfdc; --muted2:#7f9bbf;
+      --brand:#1c5da8; --brand2:#0ea5e9;
+      --ok:#19c37d; --warn:#fbbf24; --bad:#ef4444;
+      --radius: 16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(900px 600px at 10% 0%, rgba(14,165,233,.18), transparent 60%),
+        radial-gradient(900px 500px at 80% 10%, rgba(28,93,168,.20), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      min-height:100vh;
+    }
+    .wrap{max-width:1080px;margin:0 auto;padding:14px 12px 42px}
+    .topbar{
+      border:1px solid var(--stroke); border-radius:var(--radius);
+      background:linear-gradient(90deg, rgba(28,93,168,.30), rgba(14,165,233,.12));
+      padding:14px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    }
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{
+      width:42px;height:42px;border-radius:12px;
+      background: linear-gradient(135deg, rgba(28,93,168,.85), rgba(14,165,233,.70));
+      border:1px solid rgba(255,255,255,.18);
+      display:flex;align-items:center;justify-content:center;font-weight:900;letter-spacing:.6px;
+      text-shadow:0 2px 10px rgba(0,0,0,.35);
+    }
+    .title h1{margin:0;font-size:17px;letter-spacing:.2px}
+    .title .sub{margin-top:2px;color:var(--muted);font-size:12.5px;line-height:1.35}
+    .chip{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:6px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      color:var(--muted);font-size:12px;
+      user-select:none;
+    }
+    .chip.ok{border-color: rgba(25,195,125,.45); background: rgba(25,195,125,.12); color:#caffea;}
+    .chip.warn{border-color: rgba(251,191,36,.55); background: rgba(251,191,36,.12); color:#fff3c6;}
+    .chip.bad{border-color: rgba(239,68,68,.55); background: rgba(239,68,68,.12); color:#ffd5d5;}
+    .btn{
+      appearance:none;border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.06);
+      color:var(--text);
+      padding:9px 12px;border-radius:12px;cursor:pointer;
+      font-weight:700;font-size:13px;
+    }
+    .btn.primary{
+      border-color: rgba(14,165,233,.35);
+      background: linear-gradient(90deg, rgba(28,93,168,.55), rgba(14,165,233,.25));
+    }
+    .grid{display:grid;grid-template-columns: 1fr; gap:12px; margin-top:12px}
+    @media (min-width: 980px){ .grid{grid-template-columns: 1fr 1fr;} }
+
+    .card{
+      border-radius:var(--radius);
+      border:1px solid var(--stroke);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      overflow:hidden;
+    }
+    .cardHead{
+      padding:12px 14px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    }
+    .cardHead h2{margin:0;font-size:13px;color:#d9e7ff}
+    .cardBody{padding:14px}
+    .hint{color:var(--muted);font-size:12px;line-height:1.35}
+    .field{margin-top:12px}
+    label{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#d4e4ff;font-weight:750;margin-bottom:6px}
+    .help{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:18px;height:18px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.20);
+      background: rgba(0,0,0,.18);
+      font-size:12px;color:var(--muted);
+      cursor:pointer; user-select:none;
+    }
+    .desc{
+      margin-top:6px;
+      padding:10px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.14);
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.35;
+      display:none;
+    }
+    select, input[type="text"]{
+      width:100%;
+      padding:11px 10px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.18);
+      color:var(--text);
+      outline:none;
+    }
+    .row{display:grid;grid-template-columns:1fr;gap:10px}
+    @media (min-width: 640px){ .row{grid-template-columns:1fr 1fr;} }
+    .checks{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px}
+    .check{
+      display:flex;gap:10px;align-items:flex-start;
+      padding:10px;border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.14);
+    }
+    .check input{margin-top:3px}
+    .check .t{font-size:12.5px;line-height:1.35}
+    .hr{height:1px;background:rgba(255,255,255,.10);margin:12px 0}
+
+    .tableWrap{
+      overflow:auto; border-radius:14px; border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.10);
+    }
+    table{width:100%; border-collapse:collapse; min-width: 720px;}
+    th, td{
+      padding:10px 10px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      vertical-align:top;
+      font-size:12.5px;
+    }
+    th{
+      text-align:left;
+      color:#d9e7ff;
+      background: rgba(255,255,255,.06);
+      position: sticky;
+      top:0;
+      z-index:1;
+    }
+    tr:last-child td{border-bottom:none}
+    .y{color:#caffea}
+    .n{color:#ffd5d5}
+    .m{color:#fff3c6}
+    .tag{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.14);font-size:11.5px;color:var(--muted)}
+    .foot{color:var(--muted2);font-size:11.8px;line-height:1.45;margin-top:10px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">CDC</div>
+        <div class="title">
+          <h1>CDC IPM – Incentives Finder</h1>
+          <div class="sub">Mobile-friendly questionnaire with explanations. Output is a matrix/table of incentives.</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <div class="chip" id="statusChip">Status: <b>Ready</b></div>
+        <button class="btn" id="btnSample" type="button">Load sample</button>
+        <button class="btn" id="btnReset" type="button">Reset</button>
+        <button class="btn primary" id="btnGen" type="button">Generate</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <div class="cardHead">
+          <h2>Questionnaire (simple language)</h2>
+          <span class="tag">Tap ? to see help</span>
+        </div>
+        <div class="cardBody">
+          <div class="hint">
+            This is a screening tool. Exact incentive duration and some details depend on Sub-Decree / Law on Financial Management.
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="row">
+            <div class="field">
+              <label>Project name <span class="help" data-for="d_project">?</span></label>
+              <input id="projectName" type="text" placeholder="e.g., Food processing plant" />
+              <div class="desc" id="d_project">Optional. Used only for presenting the result summary.</div>
+            </div>
+            <div class="field">
+              <label>Investor/applicant type <span class="help" data-for="d_reg">?</span></label>
+              <select id="regType">
+                <option value="QIP" selected>Applying as QIP (Qualified Investment Project)</option>
+                <option value="EQIP">Expansion of an existing QIP (EQIP)</option>
+                <option value="GIP">Guaranteed Investment Project (GIP)</option>
+              </select>
+              <div class="desc" id="d_reg">
+                Incentives are mainly for QIP/EQIP. GIP typically does not receive QIP tax incentives.
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label>Project orientation <span class="help" data-for="d_type">?</span></label>
+              <select id="projType">
+                <option value="export" selected>Export-oriented (mainly export)</option>
+                <option value="supporting">Supporting industry (supplies exporters / key industries)</option>
+                <option value="domestic">Domestic-oriented (sell mainly in Cambodia)</option>
+              </select>
+              <div class="desc" id="d_type">
+                This affects Customs/VAT incentives. Export & Supporting Industry usually receive broader exemptions including production inputs.
+              </div>
+            </div>
+            <div class="field">
+              <label>Located in Special Economic Zone (SEZ)? <span class="help" data-for="d_sez">?</span></label>
+              <select id="sez">
+                <option value="no" selected>No</option>
+                <option value="yes">Yes</option>
+              </select>
+              <div class="desc" id="d_sez">
+                SEZ projects may receive incentives and guarantees under the law, subject to eligibility and approval.
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label>Is your activity eligible for incentives? <span class="help" data-for="d_sector">?</span></label>
+              <select id="sectorEligible">
+                <option value="yes" selected>Yes / likely yes</option>
+                <option value="unsure">Not sure</option>
+                <option value="no">No</option>
+              </select>
+              <div class="desc" id="d_sector">
+                Simple meaning: your business type is generally eligible and not prohibited/restricted. If unsure, choose “Not sure” and verify with CDC.
+              </div>
+            </div>
+            <div class="field">
+              <label>Is your activity on the “Negative List”? <span class="help" data-for="d_negative">?</span></label>
+              <select id="negativeList">
+                <option value="no" selected>No / likely not</option>
+                <option value="unsure">Not sure</option>
+                <option value="yes">Yes (restricted / not eligible)</option>
+              </select>
+              <div class="desc" id="d_negative">
+                Negative List means restricted/prohibited or limited incentives. If unsure, select “Not sure” and confirm with Sub-Decree list.
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Basic incentive option <span class="help" data-for="d_basic">?</span></label>
+            <select id="basicOption">
+              <option value="opt1" selected>Option 1: Income Tax exemption (3–9 years) + gradual payment</option>
+              <option value="opt2">Option 2: Special depreciation + up to 200% deduction (certain expenses)</option>
+            </select>
+            <div class="desc" id="d_basic">
+              Option 1 is a tax holiday (years depend on sector). Option 2 is often suitable for high-capital projects with qualifying expenses.
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Independent audit available? <span class="help" data-for="d_audit">?</span></label>
+            <select id="audit">
+              <option value="yes" selected>Yes</option>
+              <option value="no">Not yet</option>
+            </select>
+            <div class="desc" id="d_audit">
+              Minimum Tax exemption often requires audit. If not available now, plan to obtain it.
+            </div>
+          </div>
+
+          <div class="hr"></div>
+          <div class="field">
+            <label>Additional items (tick what applies) <span class="help" data-for="d_add">?</span></label>
+            <div class="checks">
+              <div class="check"><input id="a_vat_local" type="checkbox" checked />
+                <div class="t"><b>Buy locally made production inputs</b><br><span class="hint">May qualify for VAT exemption on local inputs</span></div>
+              </div>
+              <div class="check"><input id="a_rnd" type="checkbox" />
+                <div class="t"><b>R&D / innovation expenses</b><br><span class="hint">150% super deduction indicator</span></div>
+              </div>
+              <div class="check"><input id="a_training" type="checkbox" />
+                <div class="t"><b>Training for Cambodian workers</b><br><span class="hint">150% super deduction indicator</span></div>
+              </div>
+              <div class="check"><input id="a_accom" type="checkbox" />
+                <div class="t"><b>Worker accommodation/canteens/nurseries</b><br><span class="hint">150% super deduction indicator</span></div>
+              </div>
+              <div class="check"><input id="a_mach_up" type="checkbox" />
+                <div class="t"><b>Machinery upgrades</b><br><span class="hint">150% super deduction indicator</span></div>
+              </div>
+              <div class="check"><input id="a_welfare" type="checkbox" />
+                <div class="t"><b>Worker welfare</b><br><span class="hint">150% super deduction indicator</span></div>
+              </div>
+              <div class="check"><input id="a_highImpact" type="checkbox" />
+                <div class="t"><b>High-impact / priority project</b><br><span class="hint">May qualify for special incentives case-by-case</span></div>
+              </div>
+            </div>
+            <div class="desc" id="d_add">
+              These checkboxes help the system suggest additional incentives shown in the matrix.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card">
+        <div class="cardHead">
+          <h2>Result Matrix (Incentives you may get)</h2>
+          <span class="tag">Scrollable table</span>
+        </div>
+        <div class="cardBody">
+          <div class="hint" id="metaLine">Choose criteria and click <b>Generate</b>.</div>
+          <div class="hr"></div>
+
+          <div class="tableWrap">
+            <table id="matrix">
+              <thead>
+                <tr>
+                  <th style="min-width:220px">Incentive Item</th>
+                  <th style="min-width:120px">Eligible?</th>
+                  <th style="min-width:360px">What you get (summary)</th>
+                  <th style="min-width:280px">Conditions / Notes</th>
+                </tr>
+              </thead>
+              <tbody id="matrixBody">
+                <tr><td>—</td><td>—</td><td>Click Generate</td><td>—</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="foot">
+            Legend: <span class="y">Yes</span>, <span class="n">No</span>, <span class="m">Verify</span> (needs confirmation under Sub-Decree/LFM).
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  function setStatus(kind, text){
+    const el = $("statusChip");
+    el.className = "chip " + (kind||"");
+    el.innerHTML = "Status: <b>" + text + "</b>";
+  }
+
+  function yn(kind){
+    if(kind === "yes") return '<span class="y"><b>Yes</b></span>';
+    if(kind === "no") return '<span class="n"><b>No</b></span>';
+    return '<span class="m"><b>Verify</b></span>';
+  }
+
+  function addRow(rows, item, eligibleKind, benefit, notes){
+    rows.push('<tr>' +
+      '<td>' + item + '</td>' +
+      '<td>' + yn(eligibleKind) + '</td>' +
+      '<td>' + benefit + '</td>' +
+      '<td>' + notes + '</td>' +
+    '</tr>');
+  }
+
+  function generate(){
+    const data = {
+      projectName: $("projectName").value.trim() || "Unnamed project",
+      regType: $("regType").value,
+      projType: $("projType").value,
+      sez: $("sez").value,
+      sectorEligible: $("sectorEligible").value,
+      negativeList: $("negativeList").value,
+      basicOption: $("basicOption").value,
+      audit: $("audit").value,
+      add: {
+        vatLocal: $("a_vat_local").checked,
+        rnd: $("a_rnd").checked,
+        training: $("a_training").checked,
+        accom: $("a_accom").checked,
+        machUp: $("a_mach_up").checked,
+        welfare: $("a_welfare").checked,
+        highImpact: $("a_highImpact").checked
+      }
+    };
+
+    const rows = [];
+    const issues = [];
+    const warnings = [];
+
+    if(data.regType === "GIP"){
+      issues.push("GIP selected: typically not eligible for QIP tax incentive package.");
+    }
+    if(data.sectorEligible === "no"){
+      issues.push("Sector/activity marked not eligible.");
+    } else if(data.sectorEligible === "unsure"){
+      warnings.push("Sector/activity eligibility is not sure: please verify with CDC.");
+    }
+    if(data.negativeList === "yes"){
+      issues.push("Negative List: incentives may not apply.");
+    } else if(data.negativeList === "unsure"){
+      warnings.push("Negative List not sure: please verify with Sub-Decree list.");
+    }
+
+    const eligiblePackage = (data.regType === "QIP" || data.regType === "EQIP") && issues.length === 0;
+
+    $("metaLine").innerHTML = '<b>' + data.projectName + '</b> · Registration: <b>' + data.regType + '</b> · Type: <b>' + data.projType.toUpperCase() + '</b> · SEZ: <b>' + data.sez.toUpperCase() + '</b>';
+
+    if(issues.length){
+      setStatus("bad", "Not eligible (see matrix)");
+      addRow(rows, "Overall eligibility", "no",
+        "Project may not qualify for incentive package based on your selections.",
+        issues.join(" ")
+      );
+      if(warnings.length){
+        addRow(rows, "Items to verify", "verify", "Please verify the following:", warnings.join(" "));
+      }
+      addRow(rows, "Basic incentive option", "no", "No basic incentive recommended due to eligibility issues.", "Change criteria or confirm eligibility.");
+      addRow(rows, "Customs & VAT incentives", "no", "Not recommended due to eligibility issues.", "Change criteria or confirm eligibility.");
+      $("matrixBody").innerHTML = rows.join("");
+      return;
+    }
+
+    setStatus(warnings.length ? "warn" : "ok", warnings.length ? "Likely eligible (verify items)" : "Likely eligible");
+
+    if(warnings.length){
+      addRow(rows, "Items to verify", "verify", "Please verify the following:", warnings.join(" "));
+    }
+
+    if(eligiblePackage){
+      if(data.basicOption === "opt1"){
+        addRow(rows, "Basic option: Income Tax exemption", "yes",
+          "<b>Income Tax exemption</b> for <b>3–9 years</b> (depends on sector) + gradual payment after exemption (25% → 50% → 75%).",
+          "Duration depends on Sub-Decree/LFM."
+        );
+      } else {
+        addRow(rows, "Basic option: Special depreciation", "yes",
+          "<b>Special depreciation</b> + <b>up to 200% deduction</b> of specific expenses (up to 9 years).",
+          "Qualifying expense list depends on Sub-Decree/LFM."
+        );
+      }
+
+      addRow(rows, "Prepayment Tax exemption", "verify",
+        "Prepayment tax exemption during the applicable incentive period.",
+        "Depends on sector/activity and implementing rules."
+      );
+
+      addRow(rows, "Minimum Tax exemption", data.audit === "yes" ? "yes" : "verify",
+        "Minimum tax exemption (generally requires audit).",
+        data.audit === "yes" ? "Audit available." : "Plan to obtain independent audit."
+      );
+
+      addRow(rows, "Export Tax exemption", "verify",
+        "Export tax exemption (if applicable).",
+        "Subject to other applicable laws."
+      );
+
+      if(data.projType === "export" || data.projType === "supporting"){
+        addRow(rows, "Customs duty + Special Tax + VAT exemption", "yes",
+          "Exemption on import of construction materials, construction/production equipment, and production inputs.",
+          "For Export & Supporting Industry QIP."
+        );
+      } else {
+        addRow(rows, "Customs duty + Special Tax + VAT exemption", "yes",
+          "Exemption on import of construction materials and construction/production equipment.",
+          "Domestic QIP: production inputs may be limited."
+        );
+      }
+
+      if(data.sez === "yes"){
+        addRow(rows, "SEZ note", "yes",
+          "Project in SEZ may receive incentives and guarantees under the law.",
+          "Still subject to eligibility and approval."
+        );
+      }
+
+      addRow(rows, "VAT exemption on local production inputs", data.add.vatLocal ? "yes" : "verify",
+        "VAT exemption when purchasing locally made production inputs.",
+        data.add.vatLocal ? "Selected: will buy local inputs." : "If you buy local inputs, this may apply."
+      );
+
+      const super = [];
+      if(data.add.rnd) super.push("R&D/innovation");
+      if(data.add.training) super.push("Training");
+      if(data.add.accom) super.push("Worker facilities");
+      if(data.add.machUp) super.push("Machinery upgrades");
+      if(data.add.welfare) super.push("Worker welfare");
+      addRow(rows, "Super Deduction 150% (expenses)", super.length ? "yes" : "verify",
+        "150% super deduction for qualifying expenses: " + (super.length ? "<b>" + super.join(", ") + "</b>." : "Select at least one expense type to show likely eligibility."),
+        "Exact rules depend on implementing regulations."
+      );
+
+      addRow(rows, "EQIP income tax exemption (expansion)", data.regType === "EQIP" ? "verify" : "no",
+        data.regType === "EQIP" ? "Expansion may receive income tax exemption (per Sub-Decree)." : "Not applicable (only for EQIP).",
+        "Details by Sub-Decree."
+      );
+
+      addRow(rows, "Special incentives (high-impact/priority)", data.add.highImpact ? "verify" : "no",
+        data.add.highImpact ? "Possible special incentives for high-impact/priority sectors." : "Not selected.",
+        "Determined case-by-case under Law on Financial Management."
+      );
+    }
+
+    $("matrixBody").innerHTML = rows.join("");
+  }
+
+  function resetForm(){
+    $("projectName").value = "";
+    $("regType").value = "QIP";
+    $("projType").value = "export";
+    $("sez").value = "no";
+    $("sectorEligible").value = "yes";
+    $("negativeList").value = "no";
+    $("basicOption").value = "opt1";
+    $("audit").value = "yes";
+    $("a_vat_local").checked = true;
+    $("a_rnd").checked = false;
+    $("a_training").checked = false;
+    $("a_accom").checked = false;
+    $("a_mach_up").checked = false;
+    $("a_welfare").checked = false;
+    $("a_highImpact").checked = false;
+    $("metaLine").innerHTML = "Choose criteria and click <b>Generate</b>.";
+    $("matrixBody").innerHTML = '<tr><td>—</td><td>—</td><td>Click Generate</td><td>—</td></tr>';
+    setStatus("", "Ready");
+    document.querySelectorAll(".desc").forEach(d => d.style.display = "none");
+  }
+
+  function sample(){
+    $("projectName").value = "Sample: Supporting Industry QIP in SEZ";
+    $("regType").value = "QIP";
+    $("projType").value = "supporting";
+    $("sez").value = "yes";
+    $("sectorEligible").value = "yes";
+    $("negativeList").value = "no";
+    $("basicOption").value = "opt2";
+    $("audit").value = "yes";
+    $("a_vat_local").checked = true;
+    $("a_training").checked = true;
+    $("a_mach_up").checked = true;
+    $("a_welfare").checked = true;
+    $("a_highImpact").checked = false;
+    generate();
+  }
+
+  document.addEventListener("click", (e) => {
+    const h = e.target.closest(".help");
+    if(!h) return;
+    const id = h.getAttribute("data-for");
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.style.display = (el.style.display === "none" || !el.style.display) ? "block" : "none";
+  });
+
+  $("btnGen").addEventListener("click", generate);
+  $("btnReset").addEventListener("click", resetForm);
+  $("btnSample").addEventListener("click", sample);
+
+  resetForm();
+</script>
+</body>
+</html>
