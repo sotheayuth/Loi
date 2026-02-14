@@ -1,0 +1,264 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CDC IPM – Investment Incentives Finder</title>
+
+<style>
+body {
+    margin:0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: linear-gradient(135deg,#0b1b2a,#102c44);
+    color:#ffffff;
+}
+.header {
+    background: linear-gradient(90deg,#1c5da8,#0ea5e9);
+    padding:18px 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+}
+.header h1 {
+    margin:0;
+    font-size:18px;
+    line-height:1.2;
+}
+.status {
+    font-size:13px;
+    padding:6px 12px;
+    background:rgba(0,0,0,.25);
+    border:1px solid rgba(255,255,255,.20);
+    border-radius:999px;
+}
+.note {
+    max-width:1100px;
+    margin:14px auto 0;
+    padding:0 20px;
+    color:rgba(255,255,255,.85);
+    font-size:12.5px;
+}
+.note b { color:#ffffff; }
+.container {
+    max-width:1100px;
+    margin:18px auto 30px;
+    padding:20px;
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:20px;
+}
+@media (max-width: 900px){
+    .container { grid-template-columns: 1fr; }
+}
+.card {
+    background:rgba(22,43,64,.92);
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.35);
+    border:1px solid rgba(255,255,255,.12);
+}
+h2 {
+    margin:0 0 10px 0;
+    font-size:15px;
+    border-bottom:1px solid rgba(255,255,255,0.18);
+    padding-bottom:8px;
+}
+label {
+    font-size:13px;
+    display:block;
+    margin-top:12px;
+    color:rgba(255,255,255,.92);
+}
+select, input, textarea {
+    width:100%;
+    padding:9px;
+    margin-top:6px;
+    border-radius:8px;
+    border:1px solid rgba(255,255,255,.16);
+    background:rgba(255,255,255,.92);
+    color:#111827;
+}
+button {
+    margin-top:16px;
+    padding:11px 14px;
+    background:#0ea5e9;
+    border:none;
+    border-radius:8px;
+    color:white;
+    cursor:pointer;
+    font-weight:700;
+}
+button:hover { background:#0284c7; }
+.result-box {
+    background:rgba(0,0,0,.18);
+    padding:14px;
+    border-radius:10px;
+    margin-top:10px;
+    border:1px solid rgba(255,255,255,.12);
+    min-height:120px;
+}
+ul { padding-left:20px; }
+.small { font-size:12px; color:rgba(255,255,255,.78); line-height:1.35; margin-top:10px; }
+.pill {
+    display:inline-block;
+    padding:4px 10px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.18);
+    background:rgba(0,0,0,.18);
+    font-size:12px;
+    margin-left:8px;
+}
+.pill.ok { border-color: rgba(25,195,125,.55); }
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>CDC IPM – Investment Incentives Finder</h1>
+    <div class="status" id="status">Status: Loading…</div>
+</div>
+
+<div class="note">
+  <b>Important (iPhone/iPad):</b> If you opened this file in a preview/Quick Look screen, <b>JavaScript may be blocked</b> and the Generate button will do nothing.
+  Please open it in <b>Safari</b> (Share → “Open in Safari”) or copy the file to a web server.
+  <span class="pill" id="jsPill">JS test…</span>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>Project Questionnaire</h2>
+
+    <label>Registration Type</label>
+    <select id="regType">
+      <option value="QIP">QIP</option>
+      <option value="EQIP">EQIP (Expansion)</option>
+      <option value="GIP">GIP</option>
+    </select>
+
+    <label>Project Orientation</label>
+    <select id="projType">
+      <option value="export">Export QIP</option>
+      <option value="supporting">Supporting Industry QIP</option>
+      <option value="domestic">Domestic QIP</option>
+    </select>
+
+    <label>Sector Eligible under Article 24?</label>
+    <select id="sectorEligible">
+      <option value="yes">Yes</option>
+      <option value="unsure">Not Sure</option>
+      <option value="no">No</option>
+    </select>
+
+    <label>On Negative List?</label>
+    <select id="negativeList">
+      <option value="no">No</option>
+      <option value="unsure">Not Sure</option>
+      <option value="yes">Yes</option>
+    </select>
+
+    <label>Basic Incentive Option</label>
+    <select id="basicOption">
+      <option value="opt1">Option 1 – Income Tax Exemption</option>
+      <option value="opt2">Option 2 – Special Depreciation</option>
+    </select>
+
+    <label>Independent Audit Available?</label>
+    <select id="audit">
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+
+    <button id="btnGenerate" type="button">Generate Incentive Recommendation</button>
+
+    <div class="small">
+      If the status stays “Loading…” and the JS pill does not turn green, you are likely in a viewer that blocks scripts.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Incentive Recommendation</h2>
+    <div id="result" class="result-box">Fill in the questionnaire and click Generate.</div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  // JS self-test (helps identify iOS Preview that blocks scripts)
+  var jsPill = document.getElementById("jsPill");
+  jsPill.textContent = "JS OK";
+  jsPill.className = "pill ok";
+  document.getElementById("status").textContent = "Status: Ready";
+
+  function generate(){
+    var regType = document.getElementById("regType").value;
+    var projType = document.getElementById("projType").value;
+    var sectorEligible = document.getElementById("sectorEligible").value;
+    var negativeList = document.getElementById("negativeList").value;
+    var basicOption = document.getElementById("basicOption").value;
+    var audit = document.getElementById("audit").value;
+
+    var result = "";
+    var status = "Likely Eligible";
+    var isBlocked = false;
+
+    if(regType === "GIP"){
+      result += "<b>GIP is not eligible for tax incentives under the Investment Law.</b><br>";
+      status = "Not Eligible";
+      isBlocked = true;
+    }
+    if(sectorEligible === "no"){
+      result += "<b>Sector not eligible under Article 24.</b><br>";
+      status = "Not Eligible";
+      isBlocked = true;
+    }
+    if(negativeList === "yes"){
+      result += "<b>Project is on the Negative List. Incentives may not apply.</b><br>";
+      status = "Not Eligible";
+      isBlocked = true;
+    }
+
+    if(!isBlocked){
+      result += "<h3>Basic Incentives</h3><ul>";
+      if(basicOption === "opt1"){
+        result += "<li>Income Tax Exemption (3–9 years)</li>";
+        result += "<li>Progressive tax payment after exemption (25% → 50% → 75%)</li>";
+      } else {
+        result += "<li>Special Depreciation on capital expenditure</li>";
+        result += "<li>Up to 200% deduction of specific expenses (up to 9 years)</li>";
+      }
+      result += "<li>Prepayment Tax Exemption</li>";
+      result += "<li>Minimum Tax Exemption " + (audit === "yes" ? "(Audit Available)" : "(Requires Audit)") + "</li>";
+      result += "<li>Export Tax Exemption (if applicable)</li>";
+      result += "</ul>";
+
+      result += "<h3>Customs & VAT Incentives</h3><ul>";
+      if(projType === "export" || projType === "supporting"){
+        result += "<li>Customs Duty, Special Tax & VAT exemption on construction materials, equipment and production inputs</li>";
+      } else {
+        result += "<li>Customs Duty, Special Tax & VAT exemption on construction materials and equipment</li>";
+      }
+      result += "</ul>";
+
+      result += "<h3>Additional Incentives</h3><ul>";
+      result += "<li>VAT exemption on locally made production inputs</li>";
+      result += "<li>150% Super Deduction for R&D, training, machinery upgrades and worker welfare</li>";
+      result += "<li>Possible special incentives for high-impact/priority sectors</li>";
+      result += "</ul>";
+    }
+
+    document.getElementById("result").innerHTML = result;
+    document.getElementById("status").textContent = "Status: " + status;
+  }
+
+  document.getElementById("btnGenerate").addEventListener("click", generate);
+})();
+</script>
+
+</body>
+</html>
